@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Config\Status;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -9,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
@@ -33,6 +35,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\ManyToMany(targetEntity: Cagnotte::class, mappedBy: 'users')]
     private Collection $cagnottes;
+
+    #[ORM\Column(length: 10, enumType: Status::class)]
+    #[Assert\Choice(choices: [Status::Online, Status::Offline])]
+    private Status $status = Status::Online;
 
     public function __construct()
     {
@@ -132,6 +138,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if ($this->cagnottes->removeElement($cagnotte)) {
             $cagnotte->removeUser($this);
         }
+
+        return $this;
+    }
+
+    public function getStatus(): Status
+    {
+        return $this->status;
+    }
+
+    public function setStatus(Status $status): self
+    {
+        $this->status = $status;
 
         return $this;
     }
