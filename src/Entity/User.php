@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -28,6 +30,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    #[ORM\ManyToMany(targetEntity: Cagnotte::class, mappedBy: 'users')]
+    private Collection $cagnottes;
+
+    public function __construct()
+    {
+        $this->cagnottes = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -97,5 +107,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection<int, Cagnotte>
+     */
+    public function getCagnottes(): Collection
+    {
+        return $this->cagnottes;
+    }
+
+    public function addCagnotte(Cagnotte $cagnotte): static
+    {
+        if (!$this->cagnottes->contains($cagnotte)) {
+            $this->cagnottes->add($cagnotte);
+            $cagnotte->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCagnotte(Cagnotte $cagnotte): static
+    {
+        if ($this->cagnottes->removeElement($cagnotte)) {
+            $cagnotte->removeUser($this);
+        }
+
+        return $this;
     }
 }
