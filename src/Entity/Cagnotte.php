@@ -2,11 +2,13 @@
 
 namespace App\Entity;
 
+use App\Config\Cagnotte\Status;
 use App\Repository\CagnotteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CagnotteRepository::class)]
 class Cagnotte
@@ -27,6 +29,10 @@ class Cagnotte
 
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'cagnottes')]
     private Collection $users;
+
+    #[ORM\Column(length: 10, enumType: Status::class)]
+    #[Assert\Choice(choices: [Status::Online, Status::Offline])]
+    private Status $status = Status::Online;
 
     public function __construct()
     {
@@ -94,6 +100,18 @@ class Cagnotte
     public function removeUser(User $user): static
     {
         $this->users->removeElement($user);
+
+        return $this;
+    }
+
+    public function getStatus(): Status
+    {
+        return $this->status;
+    }
+
+    public function setStatus(Status $status): self
+    {
+        $this->status = $status;
 
         return $this;
     }
